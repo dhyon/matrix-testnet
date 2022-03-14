@@ -1,0 +1,26 @@
+---
+# Our first play. This play will run Terraform via the Terraform module
+# and build a dynamic inventory from its output
+- name: Run Terraform and build inventory dynamically
+  hosts: localhost
+  roles:
+    - terraform
+
+# This play is only there to make sure that all inventory nodes are available before
+# we proceed
+- name: Wait for all machines to become ready
+  hosts: testnet
+  gather_facts: no
+  tasks:
+    - name: Wait for machine to become reachable
+      wait_for_connection:
+        sleep: 2
+
+# We are now ready to perform the actual installation steps.
+# First, there is a play for those installation steps for the 0th validator node
+- name: Configure the 0th node
+  hosts: testnet[0]
+  become: yes
+  roles:
+    - configure_init
+# Now we can add the rest of the validators to the network

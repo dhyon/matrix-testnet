@@ -1,0 +1,48 @@
+---
+- name: add apt repository for golang #confirmed
+  ansible.builtin.apt_repository:
+    repo: ppa:longsleep/golang-backports
+
+- name: install golang #confirmed
+  apt:
+    name: golang-go
+    state: latest
+    update_cache: yes
+
+- name: download and install starport #confirmed
+  shell: curl https://get.starport.network/starport! | sudo bash
+  args:
+    warn: no
+
+- name: clone repo and checkout latest branch #confirmed
+  ansible.builtin.git:
+    repo: https://github.com/codchen/new-chain-poc.git
+    dest: /home/ubuntu/new-chain-poc # this can be brittle, Ubuntu AMIs only!
+    single_branch: yes
+    version: latest
+
+- name: build, configure, and start matrix app using starport #confirmed
+  shell: cd /home/ubuntu/new-chain-poc/; nohup starport chain serve </dev/null >/dev/null 2>&1 &
+
+- name: wait for matrix binary to be built #confirmed
+  wait_for:
+    path: /root/go/bin/new-chain-pocd # this can be brittle depending on name of binary!
+    sleep: 5
+    timeout: 300
+
+- name: Wait for port to become open #confirmed
+  wait_for:
+    port: 26657
+
+- name: Wait for port to become open #confirmed
+  wait_for:
+    port: 26656
+
+- name: get node0 tendermint node-id and save as var
+  command: sudo /root/go/bin/new-chain-pocd tendermint show-node-id # this can be brittle depending on name of binary!
+  register: node0_node_id
+
+- name: print node0_node_id
+  ansible.builtin.debug:
+    var: node0_node_id.stdout
+# TODO: download genesis.json from node0 so we can keep it on other nodes

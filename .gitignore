@@ -1,0 +1,18 @@
+#  Local .terraform directories
+**/.terraform
+
+# .tfstate files
+*.tfstate
+*.tfstate.*
+*terraform.lock.hcl
+
+# .tfvars files
+*.tfvars
+
+# Ansible-related
+*.retry
+hosts
+local-vars.yaml
+
+# tendermint-related
+genesis.json
